@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # Run command several times and display delta value for each run
+# $ perfquery -x
 #
 # # Port extended counters: Lid 274 port 1 (CapMask: 0x200)
 # PortSelect:......................1
@@ -17,68 +18,54 @@ import sys, getopt
 import subprocess
 import time
 import re
+import locale
 
 interval = 1
-times = 5
-PrevXmitData = 0
-PrevRcvData = 0
-PrevXmitPkts = 0
-PrevRcvPkts = 0
-PrevUnicastXmitPkts = 0
-PrevUnicastRcvPkts = 0
-PrevMulticastXmitPkts = 0
-PrevMulticastRcvPkts = 0
+times = 3
+first = True
 
 def main(argv):
   global interval, times
-  version = "1.0.0"
+  version = "2.2.0"
+  optT = False
 
   def help():
     print "Usage: " + \
-      sys.argv[0] + ' -i|--interval <seconds> -t|--times <number of times>'
+      sys.argv[0] + ' -h -v T -i|--interval <seconds> -t|--times <number of times>'
+    print "-h	: help"
+    print "-v	: print version"
+    print "-T	: do not print header"
+    print "Ouput will be displayed after the first time interval"
 
   def calc_rate(output):
-    global PrevXmitData, PrevRcvData
-    global PrevXmitPkts, PrevRcvPkts
-    global PrevUnicastXmitPkts, PrevUnicastRcvPkts 
-    global PrevMulticastXmitPkts, PrevMulticastRcvPkts
+    global first
     output = re.sub('\.','',output)
     output = re.sub(':','=',output)
-    # import variable name and value from the output
-    for e in output.split('\n')[2:11]:
-      exec(e) in locals()
-    
-    XmitDataRate = (PortXmitData - PrevXmitData) / interval
-    RcvDataRate = (PortRcvData - PrevRcvData) / interval
-    XmitPktsRate = (PortXmitPkts - PrevXmitPkts) / interval
-    RcvPktsRate = (PortRcvPkts - PrevRcvPkts) / interval
-    UnicastXmitPktsRate = (PortUnicastXmitPkts - PrevUnicastXmitPkts) / interval
-    UnicastRcvPktsRate = (PortUnicastRcvPkts - PrevUnicastRcvPkts) / interval
-    MulticastXmitPktsRate = (PortMulticastXmitPkts - PrevMulticastXmitPkts) / \
-	interval
-    MulticastRcvPktsRate = (PortMulticastRcvPkts - PrevMulticastRcvPkts) / \
-	interval
-
-    PrevXmitData = PortXmitData
-    PrevRcvData = PortRcvData
-    PrevXmitPkts = PortXmitPkts
-    PrevRcvPkts = PortRcvPkts
-    PrevUnicastXmitPkts = PortUnicastXmitPkts
-    PrevUnicastRcvPkts = PortUnicastRcvPkts
-    PrevMulticastXmitPkts = PortMulticastXmitPkts
-    PrevMulticastRcvPkts = PortMulticastRcvPkts
-
-    print XmitDataRate , ", ", \
-          RcvDataRate , ", ", \
-          XmitPktsRate , ", ", \
-          RcvPktsRate , ", ", \
-          UnicastXmitPktsRate , ", ", \
-          UnicastRcvPktsRate , ", ", \
-          MulticastXmitPktsRate , ", ", \
-          MulticastRcvPktsRate 
+    # magic here is to use variable name from the output received
+    for e in output.split('\n')[3:11]:
+      exec(e) in globals()
+      portvar, value = e.split('=')
+      var = re.sub('Port','',portvar)
+      prevvar = "Prev" + var
+      varrate = var + "Rate"
+      if prevvar not in globals():
+        stmt = prevvar + "=0"
+        exec(stmt) in globals()
+      calc = varrate + "=(" + portvar + "-" + prevvar + ") / interval" 
+      exec(calc) in globals()
+      save = prevvar + "=" + portvar
+      exec(save) in globals()
+      if not first:
+        #printvar = "print " + varrate + ","
+        printvar = "print locale.format('%d'," + varrate + ",grouping=True),"
+        exec(printvar) in globals()
+    if not first:
+      print
+    else:
+      first = False
     
   try:
-    opts, args = getopt.getopt(argv,"hvi:n:",["interval=","times="])
+    opts, args = getopt.getopt(argv,"hvTi:n:",["interval=","times="])
   except getopt.GetoptError:
     help()
     sys.exit(2)
@@ -89,25 +76,24 @@ def main(argv):
     elif opt == '-v':
       print version
       sys.exit()
+    elif opt == '-T':
+      optT = True
     elif opt in ("-i", "--interval"):
       interval = int(arg)
     elif opt in ("-n", "--times"):
       times = int(arg)
-  # print 'Interval is ', interval
-  # print 'Times is ', times
 
-  print "XmitDataRate, RcvDataRate, " + \
-	"XmitPktsRate, RcvPktsRate," + \
-	"UnicastXmitPktsRate, UnicastRcvPktsRate, " + \
-	"MulticastXmitPktsRate, MulticastRcvPktsRate"
-  for i in range(1,times+1):
+  if not optT:
+    print "XmitDataRate RcvDataRate " + \
+          "XmitPktsRate RcvPktsRate " + \
+	  "UnicastXmitPktsRate UnicastRcvPktsRate " + \
+	  "MulticastXmitPktsRate MulticastRcvPktsRate"
+  locale.setlocale(locale.LC_ALL, 'en_US')
+  for i in range(1,times+2):
     p = subprocess.Popen(["/usr/sbin/perfquery", "-x"],stdout=subprocess.PIPE)
     output = p.communicate()[0]
-    # print output
     calc_rate(output)
     time.sleep(interval)
-
-    
     
 if __name__ == "__main__":
   main(sys.argv[1:])
