@@ -21,6 +21,7 @@ import re
 import locale
 import time
 import datetime
+import signal
 
 interval = 1
 times = 3
@@ -28,7 +29,7 @@ first = True
 
 def main(argv):
   global interval, times
-  version = "3.0.0"
+  version = "4.0.0"
   optT = False
   optl = False
 
@@ -105,7 +106,12 @@ def main(argv):
     p = subprocess.Popen(["/usr/sbin/perfquery", "-x"],stdout=subprocess.PIPE)
     output = p.communicate()[0]
     calc_rate(output)
-    time.sleep(interval)
-    
+
+    try:
+      time.sleep(interval)
+    except KeyboardInterrupt:
+      print "Bye"
+      sys.exit()
+ 
 if __name__ == "__main__":
   main(sys.argv[1:])
