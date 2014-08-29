@@ -5,7 +5,8 @@ Simple Python script to parse a command output using Python "exec".
 
 The output of the command to parse looks like this:
 
-\# Port extended counters: Lid 996 port 1 (CapMask: 0x200)
+~~~
+# Port extended counters: Lid 996 port 1 (CapMask: 0x200)
 PortSelect:......................1
 CounterSelect:...................0x0000
 PortXmitData:....................5602171943357
@@ -16,7 +17,7 @@ PortUnicastXmitPkts:.............355674034
 PortUnicastRcvPkts:..............4613858498
 PortMulticastXmitPkts:...........587
 PortMulticastRcvPkts:............1933493
-
+~~~
 
 The script will create variables by importing their names from the command output and not hardcoded.
 
