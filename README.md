@@ -21,18 +21,18 @@ PortMulticastRcvPkts:............1933493
 
 The script will create variables by importing their names from the command output and not hardcoded.
 
-This is mainly done with the #exec# function.
+This is mainly done with the `exec` function.
 
 Other Python functions/features used:
 
-* getopt to parse command line option in the standard way
-* sleep timer
-* subprocess to run the command and capture the stdout
-* re for regular expression substitution
-* get and print datetime 
-* locale to format number with thousands seperator
-* intercept KeyboardInterrupt to avoid stack trace when CTL-C during timer sleep
-* print , to avoid adding newline when printing
+* `getopt` to parse command line option in the standard way
+* `sleep` timer
+* `subprocess` to run the command and capture the stdout
+* `re` for regular expression substitution
+* get and print `datetime` 
+* `locale` to format number with thousands seperator
+* intercept `KeyboardInterrupt` to avoid stack trace when CTL-C during timer sleep
+* `print ,` to avoid adding newline when printing
 * programmatically initialize a variable for the first time
 
 
