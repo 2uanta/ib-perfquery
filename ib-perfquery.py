@@ -19,9 +19,7 @@ import subprocess
 import time
 import re
 import locale
-import time
 import datetime
-import signal
 
 interval = 1
 times = 3
