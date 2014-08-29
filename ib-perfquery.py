@@ -19,6 +19,8 @@ import subprocess
 import time
 import re
 import locale
+import time
+import datetime
 
 interval = 1
 times = 3
@@ -26,14 +28,16 @@ first = True
 
 def main(argv):
   global interval, times
-  version = "2.2.0"
+  version = "3.0.0"
   optT = False
+  optl = False
 
   def help():
     print "Usage: " + \
-      sys.argv[0] + ' -h -v T -i|--interval <seconds> -t|--times <number of times>'
+      sys.argv[0] + ' -h -v -l -T -i|--interval <seconds> -t|--times <number of times>'
     print "-h	: help"
     print "-v	: print version"
+    print "-l	: output in /var/log format"
     print "-T	: do not print header"
     print "Ouput will be displayed after the first time interval"
 
@@ -41,6 +45,8 @@ def main(argv):
     global first
     output = re.sub('\.','',output)
     output = re.sub(':','=',output)
+    if not first and optl:
+      print datetime.datetime.now().strftime("%Y%m%d%H%M%S") + ";",
     # magic here is to use variable name from the output received
     for e in output.split('\n')[3:11]:
       exec(e) in globals()
@@ -56,8 +62,12 @@ def main(argv):
       save = prevvar + "=" + portvar
       exec(save) in globals()
       if not first:
+        if optl:
+          printname = "print '" + varrate + ": ',"
+          exec(printname) in globals()
         #printvar = "print " + varrate + ","
-        printvar = "print locale.format('%d'," + varrate + ",grouping=True),"
+        printvar = \
+          "print locale.format('%d'," + varrate + ",grouping=True)+" + "';'," 
         exec(printvar) in globals()
     if not first:
       print
@@ -65,7 +75,7 @@ def main(argv):
       first = False
     
   try:
-    opts, args = getopt.getopt(argv,"hvTi:n:",["interval=","times="])
+    opts, args = getopt.getopt(argv,"hvlTi:n:",["interval=","times="])
   except getopt.GetoptError:
     help()
     sys.exit(2)
@@ -76,6 +86,8 @@ def main(argv):
     elif opt == '-v':
       print version
       sys.exit()
+    elif opt == '-l':
+      optl = True
     elif opt == '-T':
       optT = True
     elif opt in ("-i", "--interval"):
