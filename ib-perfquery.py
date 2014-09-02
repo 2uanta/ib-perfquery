@@ -27,7 +27,7 @@ first = True
 
 def main(argv):
   global interval, times
-  version = "5.0.0"
+  version = "5.1.0"
   optl = False
   optT = False
   optx = False
@@ -72,10 +72,10 @@ def main(argv):
           printname = "print '" + varrate + ": ',"
           exec(printname) in globals()
           printvar = \
-            "print locale.format('%d'," + varrate + ",grouping=True)+" + "';'," 
+            "print locale.format('%12d'," + varrate + ",grouping=True)+" + "';'," 
         else:
           printvar = \
-            "print locale.format('%d'," + varrate + ",grouping=True)" + "," 
+            "print locale.format('%12d'," + varrate + ",grouping=True)" + "," 
         exec(printvar) in globals()
     if not first:
       print
@@ -107,12 +107,11 @@ def main(argv):
 
   if not optT and not optl:
     print "XmitDataRate RcvDataRate " + \
-          "XmitPktsRate RcvPktsRate ",
+          "XmitPktsRate RcvPktsRate "
     if optx:
       print \
 	  "UnicastXmitPktsRate UnicastRcvPktsRate " + \
-	  "MulticastXmitPktsRate MulticastRcvPktsRate",
-    print
+	  "MulticastXmitPktsRate MulticastRcvPktsRate"
   locale.setlocale(locale.LC_ALL, 'en_US')
   for i in range(1,times+2):
     p = subprocess.Popen(["/usr/sbin/perfquery", "-x"],stdout=subprocess.PIPE)
