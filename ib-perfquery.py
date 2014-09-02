@@ -27,17 +27,19 @@ first = True
 
 def main(argv):
   global interval, times
-  version = "4.0.0"
-  optT = False
+  version = "5.0.0"
   optl = False
+  optT = False
+  optx = False
 
   def help():
     print "Usage: " + \
-      sys.argv[0] + ' -h -v -l -T -i|--interval <seconds> -t|--times <number of times>'
+      sys.argv[0] + ' -h -v -l -T -x -i|--interval <seconds> -t|--times <number of times>'
     print "-h	: help"
     print "-v	: print version"
     print "-l	: output in /var/log format"
     print "-T	: do not print header"
+    print "-x	: show unicast/multicast packets"
     print "Ouput will be displayed after the first time interval"
 
   def calc_rate(output):
@@ -47,7 +49,11 @@ def main(argv):
     if not first and optl:
       print datetime.datetime.now().strftime("%Y%m%d%H%M%S") + ";",
     # magic here is to use variable name from the output received
-    for e in output.split('\n')[3:11]:
+    if optx:
+      end = 11
+    else:
+      end = 7
+    for e in output.split('\n')[3:end]:
       exec(e) in globals()
       portvar, value = e.split('=')
       var = re.sub('Port','',portvar)
@@ -61,12 +67,15 @@ def main(argv):
       save = prevvar + "=" + portvar
       exec(save) in globals()
       if not first:
+        #printvar = "print " + varrate + ","
         if optl:
           printname = "print '" + varrate + ": ',"
           exec(printname) in globals()
-        #printvar = "print " + varrate + ","
-        printvar = \
-          "print locale.format('%d'," + varrate + ",grouping=True)+" + "';'," 
+          printvar = \
+            "print locale.format('%d'," + varrate + ",grouping=True)+" + "';'," 
+        else:
+          printvar = \
+            "print locale.format('%d'," + varrate + ",grouping=True)" + "," 
         exec(printvar) in globals()
     if not first:
       print
@@ -74,7 +83,7 @@ def main(argv):
       first = False
     
   try:
-    opts, args = getopt.getopt(argv,"hvlTi:n:",["interval=","times="])
+    opts, args = getopt.getopt(argv,"hvlTxi:n:",["interval=","times="])
   except getopt.GetoptError:
     help()
     sys.exit(2)
@@ -89,16 +98,21 @@ def main(argv):
       optl = True
     elif opt == '-T':
       optT = True
+    elif opt == '-x':
+      optx = True
     elif opt in ("-i", "--interval"):
       interval = int(arg)
     elif opt in ("-n", "--times"):
       times = int(arg)
 
-  if not optT:
+  if not optT and not optl:
     print "XmitDataRate RcvDataRate " + \
-          "XmitPktsRate RcvPktsRate " + \
+          "XmitPktsRate RcvPktsRate ",
+    if optx:
+      print \
 	  "UnicastXmitPktsRate UnicastRcvPktsRate " + \
-	  "MulticastXmitPktsRate MulticastRcvPktsRate"
+	  "MulticastXmitPktsRate MulticastRcvPktsRate",
+    print
   locale.setlocale(locale.LC_ALL, 'en_US')
   for i in range(1,times+2):
     p = subprocess.Popen(["/usr/sbin/perfquery", "-x"],stdout=subprocess.PIPE)
