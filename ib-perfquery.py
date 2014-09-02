@@ -106,12 +106,13 @@ def main(argv):
       times = int(arg)
 
   if not optT and not optl:
-    print "XmitDataRate RcvDataRate " + \
-          "XmitPktsRate RcvPktsRate "
+    print "  XmitData/s    RcvData/s " + \
+          "  XmitPkts/s    RcvPkts/s",
     if optx:
       print \
-	  "UnicastXmitPktsRate UnicastRcvPktsRate " + \
-	  "MulticastXmitPktsRate MulticastRcvPktsRate"
+	  " UXmitPkts/s   URcvPkts/s " + \
+	  " MXmitPkts/s   MRcvPkts/s"
+    print
   locale.setlocale(locale.LC_ALL, 'en_US')
   for i in range(1,times+2):
     p = subprocess.Popen(["/usr/sbin/perfquery", "-x"],stdout=subprocess.PIPE)
